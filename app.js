@@ -35,9 +35,17 @@ const failure = {
 	page: __dirname + "/failure.html",
 };
 
+app.get(success.route, (req, res) => {
+	res.redirect('/');
+});
+
+app.get(failure.route, (req, res) => {
+	res.redirect("/");
+});
+
 app.get(signup.route, (req, res) => {
-    res.sendFile(signup.page);
-})
+	res.sendFile(signup.page);
+});
 
 app.post(signup.route, (req, res) => {
 	
