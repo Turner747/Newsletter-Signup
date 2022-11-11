@@ -9,16 +9,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 const mailchimp = require("@mailchimp/mailchimp_marketing");
+const https = require('node:https');
+const { post } = require('request');
 
 mailchimp.setConfig({
 	apiKey: config.apiKey,
 	server: config.server,
 });
-
-async function run() {
-	const response = await mailchimp.ping.get();
-	console.log(response);
-}
 
 const signup = {
 	route: "/",
@@ -40,7 +37,6 @@ const failure = {
 
 app.get(signup.route, (req, res) => {
     res.sendFile(signup.page);
-    run();
 })
 
 app.post(signup.route, (req, res) => {
@@ -51,46 +47,31 @@ app.post(signup.route, (req, res) => {
 
     console.log(firstName, lastName, email);
 
-    const response = addContact(firstName, lastName, email);
-
-    if (response.id !== null) 
-        res.sendFile(success.page);
-    else
-        res.sendFile(failure.page);
-});
-
-
-async function addContact(firstName, lastName, email) {
-    const listId = config.listId;
-    const subscribingUser = {
-        firstName: firstName,
-        lastName: lastName,
-        email: email,
+    var data = {
+        members: [
+            {
+                email_address: email,
+                status: "subscribed",
+                merge_fields: {
+                    FNAME: firstName,
+                    LNAME: lastName
+                }
+            }
+        ]
     };
 
-    const response =  await mailchimp.lists.addListMember(listId, {
-        email_address: subscribingUser.email,
-        status: "subscribed",
-        merge_fields: {
-            FNAME: subscribingUser.firstName,
-            LNAME: subscribingUser.lastName,
-        },
-    });
+    const run = async () => {
+        const response = await mailchimp.lists.batchListMembers(config.listId, data);
+        console.log(response);
 
-    console.log(
-        `Successfully added contact as an audience member. The contact's id is ${response.id}.`
-    );
+        if(response.total_created === 1)
+            res.sendFile(success.page);
+        else
+            res.sendFile(failure.page);
+    };
 
-    return response;
-}
-
-
-
-
-
-
-
-
+	run();
+});
 
 
 
