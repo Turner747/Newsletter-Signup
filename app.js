@@ -70,7 +70,6 @@ app.post(signup.route, (req, res) => {
 
     const run = async () => {
         const response = await mailchimp.lists.batchListMembers(config.listId, data);
-        console.log(response);
 
         if(response.total_created === 1)
             res.sendFile(success.page);
