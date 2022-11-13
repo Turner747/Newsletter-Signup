@@ -1,6 +1,5 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const config = require('./config');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -13,8 +12,8 @@ const https = require('node:https');
 const { post } = require('request');
 
 mailchimp.setConfig({
-	apiKey: config.apiKey,
-	server: config.server,
+	apiKey: "6da557be190dda6694d71a2b6236ab5c-us18",
+	server: "us18",
 });
 
 const signup = {
@@ -52,6 +51,7 @@ app.post(signup.route, (req, res) => {
     const firstName = req.body.firstName;
     const lastName = req.body.lastName;
     const email = req.body.email;
+    const listId = "65e55df031";
 
     console.log(firstName, lastName, email);
 
@@ -69,7 +69,7 @@ app.post(signup.route, (req, res) => {
     };
 
     const run = async () => {
-        const response = await mailchimp.lists.batchListMembers(config.listId, data);
+        const response = await mailchimp.lists.batchListMembers(listId, data);
 
         if(response.total_created === 1)
             res.sendFile(success.page);
@@ -77,7 +77,14 @@ app.post(signup.route, (req, res) => {
             res.sendFile(failure.page);
     };
 
-	run();
+    try{
+        run();
+    }
+    catch(err) {
+        res.sendFile(failure.page);
+        console.log(err);
+    }
+	
 });
 
 
